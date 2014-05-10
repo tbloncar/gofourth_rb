@@ -42,6 +42,11 @@ class Rocket
       @x >= @window.quad_width
   end
 
+  def reset_position
+    @x, @y = @window.width/2 - @width/2, @window.height/2 - @height/2 + @window.header_height/2
+    @direction = :up
+  end
+
   private
 
   def respond_to_movement

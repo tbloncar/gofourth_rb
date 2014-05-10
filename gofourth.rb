@@ -47,6 +47,7 @@ class Game < Gosu::Window
     case @stage
     when :start
       @stage = :play if button_down?(Gosu::KbReturn)
+      reset_best_score
     when :play
       @piece.update
       @stage = :answer if button_down?(Gosu::KbReturn) && @timer > 10
@@ -56,9 +57,11 @@ class Game < Gosu::Window
     when :over
       possibly_set_best_score
       restart if button_down?(Gosu::KbR)
+      go_to_main_menu if button_down?(Gosu::KbM)
     when :win
       possibly_set_best_score
       restart if button_down?(Gosu::KbR)
+      go_to_main_menu if button_down?(Gosu::KbM)
     end
   end
 
@@ -67,9 +70,11 @@ class Game < Gosu::Window
     case @stage
     when :start
       title   = image_from_text(self.caption, 60)
-      action  = image_from_text("Press ENTER to Begin", 36)
+      begin_action  = image_from_text("Press ENTER to Begin", 30)
+      reset_action = image_from_text("Best: #{@best_score} - Reset (X)", 25)
       title.draw(self.width/2 - title.width/2, 100, 0)
-      action.draw(self.width/2 - action.width/2, 160, 0)
+      begin_action.draw(self.width/2 - begin_action.width/2, 160, 0)
+      reset_action.draw(10, self.height - 35, 0)
     when :play
       @timer += 1 if @timer < 500
       draw_quads
@@ -85,7 +90,7 @@ class Game < Gosu::Window
     when :answer
       if check_answer(@current_level[:solution_quad])
         @level += 1
-        @score += (500 - @timer) * @level
+        @score += (501 - @timer) * @level
         @timer = 0
         if @levels[@level]
           @stage = :play
@@ -188,11 +193,16 @@ class Game < Gosu::Window
     @piece.send("in_quad_#{fourth_with_correct_answer}?")
   end
 
-  def restart
+  def reset
     @levels = LEVELS.shuffle
     @level  = 0
     @score  = 0
     @timer  = 0
+    @piece.reset_position
+  end
+
+  def restart
+    reset
     @stage  = :play
   end
 
@@ -205,13 +215,27 @@ class Game < Gosu::Window
     end
   end
 
+  def reset_best_score
+    if button_down?(Gosu::KbX)
+      @store.transaction do
+        @store[:best_score] = 0
+        @best_score = 0
+      end
+    end
+  end
+
+  def go_to_main_menu
+    reset
+    @stage = :start
+  end
+
   def draw_over_stage
     game_over_text = image_from_text("Game Over!", 60)
     game_over_text.draw(self.width/2 - game_over_text.width/2, self.height/2 - game_over_text.height/2 - 50, 0)
     score_text = image_from_text("Score: #{@score}  Best: #{@best_score}", 30)
     score_text.draw(self.width/2 - score_text.width/2, self.height/2 - game_over_text.height/2 + 10, 0)
-    action_text  = image_from_text("Press R to Try Again", 36)
-    action_text.draw(self.width/2 - action_text.width/2, self.height/2 - game_over_text.height/2 + 60, 0)
+    main_action_text  = image_from_text("Try Again (R)  Main Menu (M)", 32)
+    main_action_text.draw(self.width/2 - main_action_text.width/2, self.height/2 - game_over_text.height/2 + 60, 0)
   end
 
   def draw_win_stage
@@ -219,8 +243,8 @@ class Game < Gosu::Window
     win_text.draw(self.width/2 - win_text.width/2, self.height/2 - win_text.height/2 - 50, 0)
     score_text = image_from_text("Score: #{@score}  Best: #{@best_score}", 30)
     score_text.draw(self.width/2 - score_text.width/2, self.height/2 - win_text.height/2 + 10, 0)
-    action_text  = image_from_text("Press R to Play Again", 36)
-    action_text.draw(self.width/2 - action_text.width/2, self.height/2 - score_text.height/2 + 40, 0)
+    main_action_text  = image_from_text("Play Again (R)  Main Menu (M)", 32)
+    main_action_text.draw(self.width/2 - main_action_text.width/2, self.height/2 - score_text.height/2 + 40, 0)
   end
 end
 
