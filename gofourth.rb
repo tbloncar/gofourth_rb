@@ -18,6 +18,12 @@ class Game < Gosu::Window
     @font           = "media/font/Abel-Regular.ttf"
     @stage          = :start
     @store          = PStore.new("scores.pstore") || 0
+    @idle_song      = Gosu::Song.new(self, "media/audio/idle.aif")
+    @play_song      = Gosu::Song.new(self, "media/audio/play.aif")
+    @menu_sample    = Gosu::Sample.new(self, "media/audio/menu.wav")
+    @correct_sample = Gosu::Sample.new(self, "media/audio/teleport.wav")
+    @wrong_sample   = Gosu::Sample.new(self, "media/audio/gameover.wav")
+    @win_sample     = Gosu::Sample.new(self, "media/audio/win.wav")
     @timer          = 0
     @level          = 0
     @score          = 0
@@ -46,19 +52,27 @@ class Game < Gosu::Window
   def update
     case @stage
     when :start
-      @stage = :play if button_down?(Gosu::KbReturn)
-      reset_best_score
+      @idle_song.play(true)
+      if button_down?(Gosu::KbReturn)
+        @menu_sample.play
+        @stage = :play
+      end
+      reset_best_score if button_down?(Gosu::KbX)
     when :play
+      @play_song.play(true)
       @piece.update
-      @stage = :answer if button_down?(Gosu::KbReturn) && @timer > 10
-      
+      if button_down?(Gosu::KbReturn) && @timer > 10
+        @stage = :answer
+      end
     when :answer
       
     when :over
+      @play_song.stop
       possibly_set_best_score
       restart if button_down?(Gosu::KbR)
       go_to_main_menu if button_down?(Gosu::KbM)
     when :win
+      @play_song.stop
       possibly_set_best_score
       restart if button_down?(Gosu::KbR)
       go_to_main_menu if button_down?(Gosu::KbM)
@@ -89,15 +103,18 @@ class Game < Gosu::Window
       @stage = :answer if @timer == 500
     when :answer
       if check_answer(@current_level[:solution_quad])
+        @correct_sample.play
         @level += 1
         @score += (501 - @timer) * @level
         @timer = 0
         if @levels[@level]
           @stage = :play
         else
+          @win_sample.play
           @stage = :win
         end
       else
+        @wrong_sample.play
         @stage = :over
       end
     when :over
@@ -194,6 +211,7 @@ class Game < Gosu::Window
   end
 
   def reset
+    @menu_sample.play
     @levels = LEVELS.shuffle
     @level  = 0
     @score  = 0
@@ -216,11 +234,10 @@ class Game < Gosu::Window
   end
 
   def reset_best_score
-    if button_down?(Gosu::KbX)
-      @store.transaction do
-        @store[:best_score] = 0
-        @best_score = 0
-      end
+    @menu_sample.play
+    @store.transaction do
+      @store[:best_score] = 0
+      @best_score = 0
     end
   end
 
