@@ -18,6 +18,8 @@ class Game < Gosu::Window
     @font           = "media/font/Abel-Regular.ttf"
     @stage          = :start
     @store          = PStore.new("scores.pstore") || 0
+    @volume         = 1
+    @adventure      = 1
     @idle_song      = Gosu::Song.new(self, "media/audio/idle.aif")
     @play_song      = Gosu::Song.new(self, "media/audio/play.aif")
     @menu_sample    = Gosu::Sample.new(self, "media/audio/menu.wav")
@@ -27,10 +29,10 @@ class Game < Gosu::Window
     @timer          = 0
     @level          = 0
     @score          = 0
-    @levels         = get_levels
     @colors         = {
       gold: Gosu::Color.rgba(255, 185, 15, 100),
       faded_gold: Gosu::Color.rgba(255, 185, 15, 30),
+      active_gold: Gosu::Color.rgb(255, 185, 15),
       purple: Gosu::Color.rgba(125, 38, 205, 100),
       faded_purple: Gosu::Color.rgba(125, 38, 205, 30),
       green: Gosu::Color.rgba(127, 255, 0, 100),
@@ -47,19 +49,39 @@ class Game < Gosu::Window
 
   def button_down(id)
     close if id == Gosu::KbEscape 
+    if id == Gosu::KbS
+      @volume = (@volume - 1).abs
+      if (song = Gosu::Song.current_song)
+        song.volume = @volume
+      end
+    end
+    case @stage
+    when :start
+      if id == Gosu::KbReturn
+        @menu_sample.play(@volume)
+        @stage = :choose
+      end
+    when :choose
+      if id == Gosu::KbDown 
+        @menu_sample.play(@volume)
+        @adventure += 1 unless @adventure == 3 # LEVELS.keys.count
+      end
+      if id == Gosu::KbUp
+        @menu_sample.play(@volume)
+        @adventure -= 1 unless @adventure == 1
+      end
+      begin_play if id == Gosu::KbReturn
+      go_to_main_menu if id == Gosu::KbM
+    end
   end
 
   def update
     case @stage
     when :start
-      @idle_song.play(true)
-      if button_down?(Gosu::KbReturn)
-        @menu_sample.play
-        @stage = :play
-      end
+      @idle_song.play(true) unless @volume == 0
       reset_best_score if button_down?(Gosu::KbX)
     when :play
-      @play_song.play(true)
+      @play_song.play(true) unless @volume == 0
       @piece.update
       if button_down?(Gosu::KbReturn) && @timer > 10
         @stage = :answer
@@ -83,12 +105,36 @@ class Game < Gosu::Window
     @background.draw(0, 0, 0)
     case @stage
     when :start
-      title   = image_from_text(self.caption, 60)
+      title = image_from_text(self.caption, 60)
       begin_action  = image_from_text("Press ENTER to Begin", 30)
       reset_action = image_from_text("Best: #{@best_score} - Reset (X)", 25)
+      other_actions = image_from_text("Sound (S) - Credits (C)", 25)
+
       title.draw(self.width/2 - title.width/2, 100, 0)
       begin_action.draw(self.width/2 - begin_action.width/2, 160, 0)
       reset_action.draw(10, self.height - 35, 0)
+      other_actions.draw(self.width - 10 - other_actions.width, self.height - 35, 0)
+    when :choose
+      title = image_from_text("Choose Your Adventure", 40)
+      adventure1 = image_from_text("1. Mathematics", 28)
+      adventure2 = image_from_text("2. U.S. Presidents", 28)
+      adventure3 = image_from_text("3. Grammar", 28)
+      continue_action = image_from_text("Press ENTER to Continue", 30)
+      back_action = image_from_text("Back to Menu (M)", 25)
+
+      a1color = a2color = a3color = @colors[:white]
+      case @adventure
+      when 1 then a1color = @colors[:active_gold]
+      when 2 then a2color = @colors[:active_gold]
+      when 3 then a3color = @colors[:active_gold]
+      end
+
+      title.draw(self.width/2 - title.width/2, 50, 0)
+      adventure1.draw(self.width/2 - adventure1.width/2, 110, 0, 1, 1, a1color)
+      adventure2.draw(self.width/2 - adventure2.width/2, 150, 0, 1, 1, a2color)
+      adventure3.draw(self.width/2 - adventure3.width/2, 190, 0, 1, 1, a3color)
+      continue_action.draw(self.width/2 - continue_action.width/2, 250, 0)
+      back_action.draw(10, self.height - 35, 0)
     when :play
       @timer += 1 if @timer < 500
       draw_quads
@@ -103,18 +149,18 @@ class Game < Gosu::Window
       @stage = :answer if @timer == 500
     when :answer
       if check_answer(@current_level[:solution_quad])
-        @correct_sample.play
+        @correct_sample.play(@volume)
         @level += 1
         @score += (501 - @timer) * @level
         @timer = 0
         if @levels[@level]
           @stage = :play
         else
-          @win_sample.play
+          @win_sample.play(@volume)
           @stage = :win
         end
       else
-        @wrong_sample.play
+        @wrong_sample.play(@volume)
         @stage = :over
       end
     when :over
@@ -211,8 +257,8 @@ class Game < Gosu::Window
   end
 
   def reset
-    @menu_sample.play
-    @levels = get_levels
+    @menu_sample.play(@volume)
+    get_levels
     @level  = 0
     @score  = 0
     @timer  = 0
@@ -234,7 +280,7 @@ class Game < Gosu::Window
   end
 
   def reset_best_score
-    @menu_sample.play
+    @menu_sample.play(@volume)
     @store.transaction do
       @store[:best_score] = 0
       @best_score = 0
@@ -247,7 +293,18 @@ class Game < Gosu::Window
   end
 
   def get_levels
-    LEVELS.shuffle.sample(10)
+    adventure_name = case @adventure
+    when 1 then :mathematics
+    when 2 then :presidents
+    when 3 then :grammar
+    end
+
+    @levels = LEVELS[adventure_name].sample(10)
+  end
+
+  def begin_play
+    get_levels
+    @stage = :play
   end
 
   def draw_over_stage
