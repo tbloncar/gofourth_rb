@@ -27,7 +27,7 @@ class Game < Gosu::Window
     @timer          = 0
     @level          = 0
     @score          = 0
-    @levels         = LEVELS.shuffle
+    @levels         = get_levels
     @colors         = {
       gold: Gosu::Color.rgba(255, 185, 15, 100),
       faded_gold: Gosu::Color.rgba(255, 185, 15, 30),
@@ -212,7 +212,7 @@ class Game < Gosu::Window
 
   def reset
     @menu_sample.play
-    @levels = LEVELS.shuffle
+    @levels = get_levels
     @level  = 0
     @score  = 0
     @timer  = 0
@@ -244,6 +244,10 @@ class Game < Gosu::Window
   def go_to_main_menu
     reset
     @stage = :start
+  end
+
+  def get_levels
+    LEVELS.shuffle.sample(10)
   end
 
   def draw_over_stage
