@@ -1,9 +1,12 @@
 require "gosu"
+require "hasu"
 require "pstore"
-require_relative "levels"
-require_relative "rocket"
 
-class Game < Gosu::Window
+Hasu.load "levels.rb"
+Hasu.load "rocket.rb"
+Hasu.load "asteroid.rb"
+
+class Game < Hasu::Window
   attr_reader :font, :header_height, :quad_width, :quad_height
 
   def initialize
@@ -64,7 +67,7 @@ class Game < Gosu::Window
     when :choose
       if id == Gosu::KbDown 
         @menu_sample.play(@volume)
-        @adventure += 1 unless @adventure == 3 # LEVELS.keys.count
+        @adventure += 1 unless @adventure == LEVELS.keys.count
       end
       if id == Gosu::KbUp
         @menu_sample.play(@volume)
@@ -119,21 +122,24 @@ class Game < Gosu::Window
       adventure1 = image_from_text("1. Mathematics", 28)
       adventure2 = image_from_text("2. U.S. Presidents", 28)
       adventure3 = image_from_text("3. Grammar", 28)
+      adventure4 = image_from_text("4. Vehicles", 28)
       continue_action = image_from_text("Press ENTER to Continue", 30)
       back_action = image_from_text("Back to Menu (M)", 25)
 
-      a1color = a2color = a3color = @colors[:white]
+      a1color = a2color = a3color = a4color = @colors[:white]
       case @adventure
       when 1 then a1color = @colors[:active_gold]
       when 2 then a2color = @colors[:active_gold]
       when 3 then a3color = @colors[:active_gold]
+      when 4 then a4color = @colors[:active_gold]
       end
 
-      title.draw(self.width/2 - title.width/2, 50, 0)
-      adventure1.draw(self.width/2 - adventure1.width/2, 110, 0, 1, 1, a1color)
-      adventure2.draw(self.width/2 - adventure2.width/2, 150, 0, 1, 1, a2color)
-      adventure3.draw(self.width/2 - adventure3.width/2, 190, 0, 1, 1, a3color)
-      continue_action.draw(self.width/2 - continue_action.width/2, 250, 0)
+      title.draw(self.width/2 - title.width/2, 30, 0)
+      adventure1.draw(self.width/2 - adventure1.width/2, 85, 0, 1, 1, a1color)
+      adventure2.draw(self.width/2 - adventure2.width/2, 125, 0, 1, 1, a2color)
+      adventure3.draw(self.width/2 - adventure3.width/2, 165, 0, 1, 1, a3color)
+      adventure4.draw(self.width/2 - adventure4.width/2, 205, 0, 1, 1, a4color)
+      continue_action.draw(self.width/2 - continue_action.width/2, 260, 0)
       back_action.draw(10, self.height - 35, 0)
     when :play
       @timer += 1 if @timer < 500
@@ -297,6 +303,7 @@ class Game < Gosu::Window
     when 1 then :mathematics
     when 2 then :presidents
     when 3 then :grammar
+    when 4 then :vehicles
     end
 
     @levels = LEVELS[adventure_name].sample(10)
@@ -326,4 +333,4 @@ class Game < Gosu::Window
   end
 end
 
-Game.new.show
+Game.run

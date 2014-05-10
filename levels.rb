@@ -222,5 +222,69 @@ LEVELS = {
       solution_quad: 4
     },
 
+  ],
+
+  vehicles: [
+    {
+      problem: "Mustang",
+      possible_answers: ["Ford", "Chevrolet", "Dodge", "Hyundai"],
+      solution_quad: 1
+    },
+    {
+      problem: "Charger",
+      possible_answers: ["Dodge", "Volkswagen", "Jeep", "Pontiac"],
+      solution_quad: 1
+    },
+    {
+      problem: "Rabbit",
+      possible_answers: ["Hyundai", "Nissan", "Jeep", "Volkswagen"],
+      solution_quad: 4
+    },
+    {
+      problem: "Tundra",
+      possible_answers: ["BMW", "Toyota", "Lexus", "Ford"],
+      solution_quad: 2
+    },
+    {
+      problem: "R8",
+      possible_answers: ["BMW", "Lexus", "Audi", "Lincoln"],
+      solution_quad: 3
+    },
+    {
+      problem: "Quest",
+      possible_answers: ["Mitsubishi", "Honda", "Nissan", "Dodge"],
+      solution_quad: 3
+    },
+    {
+      problem: "Civic",
+      possible_answers: ["Honda", "Suzuki", "Hyundai", "Jeep"],
+      solution_quad: 1
+    },
+    {
+      problem: "Liberty",
+      possible_answers: ["Honda", "Dodge", "Jeep", "Toyota"],
+      solution_quad: 3
+    },
+    {
+      problem: "Regal",
+      possible_answers: ["Buick", "Lincoln", "Cadillac", "Toyota"],
+      solution_quad: 1
+    },
+    {
+      problem: "Davidson",
+      possible_answers: ["Henry", "Harley", "Honda", "Hurley"],
+      solution_quad: 2
+    },
+    {
+      problem: "F1",
+      possible_answers: ["McLaren", "BMW", "Volkswagen", "Mitsubishi"],
+      solution_quad: 1
+    },
+    {
+      problem: "Model T",
+      possible_answers: ["Dodge", "Toyota", "Buick", "Ford"],
+      solution_quad: 4
+    },
+
   ]
 }
