@@ -1,12 +1,11 @@
 require "gosu"
-require "hasu"
 require "pstore"
 
-Hasu.load "levels.rb"
-Hasu.load "rocket.rb"
-Hasu.load "asteroid.rb"
+require_relative "levels"
+require_relative "rocket"
+require_relative "asteroid"
 
-class Game < Hasu::Window
+class Game < Gosu::Window
   attr_reader :font, :header_height, :quad_width, :quad_height
 
   def initialize
@@ -45,6 +44,7 @@ class Game < Hasu::Window
       danger_red: Gosu::Color.rgb(205, 0, 0),
       white: Gosu::Color.rgb(255,255,255)
     }
+    @asteroids      = []
     @store.transaction(true) do
       @best_score = @store[:best_score] || 0
     end
@@ -86,6 +86,21 @@ class Game < Hasu::Window
     when :play
       @play_song.play(true) unless @volume == 0
       @piece.update
+      @asteroids[@level] ||= []
+      unless @asteroids[@level].any?
+        @level.times do |i|
+          unless @asteroids[@level].size == 5
+            asteroid = Asteroid.new(self)
+            @asteroids[@level] << asteroid
+          end
+        end
+      end
+      @asteroids[@level].each { |a|
+        if @piece.intersects_with?(a)
+          @asteroids[@level] = []
+          @stage = :over if @piece.intersects_with?(a) 
+        end
+      }
       if button_down?(Gosu::KbReturn) && @timer > 10
         @stage = :answer
       end
@@ -151,9 +166,11 @@ class Game < Hasu::Window
       draw_possible_answers(@current_level[:possible_answers])
       draw_timer
       @piece.draw
+      @asteroids[@level].each { |a| a.draw }
 
       @stage = :answer if @timer == 500
     when :answer
+      @asteroids[@level] = []
       if check_answer(@current_level[:solution_quad])
         @correct_sample.play(@volume)
         @level += 1
@@ -333,4 +350,4 @@ class Game < Hasu::Window
   end
 end
 
-Game.run
+Game.new.show

@@ -1,5 +1,5 @@
 class Rocket
-  attr_reader :width, :height
+  attr_reader :width, :height, :x, :y
 
   def initialize(window)
     @window         = window
@@ -45,6 +45,13 @@ class Rocket
   def reset_position
     @x, @y = @window.width/2 - @width/2, @window.height/2 - @height/2 + @window.header_height/2
     @direction = :up
+  end
+
+  def intersects_with?(o)
+    self.x < (o.x + o.width) &&
+      (self.x + self.width) > o.x &&
+      self.y < (o.y + o.height) &&
+      (self.y + self.height) > o.y
   end
 
   private
