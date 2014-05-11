@@ -6,7 +6,7 @@ class Rocket
     @width          = 49
     @height         = 49
     @idle           = Gosu::Image.load_tiles(@window,
-                                             "media/img/rocket-sprites.png",
+                                             "media/img/rocket-sprite.png",
                                              @width, @height, true)
     @move_distance  = 10 
     @direction      = :up
