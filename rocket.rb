@@ -48,10 +48,10 @@ class Rocket
   end
 
   def intersects_with?(o)
-    self.x < (o.x + o.width) &&
-      (self.x + self.width) > o.x &&
-      self.y < (o.y + o.height) &&
-      (self.y + self.height) > o.y
+    self.x < (o.x + o.width - 10) &&
+      (self.x + self.width - 10) > o.x &&
+      self.y < (o.y + o.height - 10) &&
+      (self.y + self.height - 10) > o.y
   end
 
   private
